@@ -4,7 +4,6 @@ import { unlink } from 'fs'
 
 module.exports.create = async (req: Request, res: Response) => {
     const prisma = new PrismaClient()
-    console.log(req.body)
     const category = await prisma.category.findUniqueOrThrow({
         where: {
             id: +req.body.categoryId
@@ -38,40 +37,31 @@ module.exports.update = async (req: Request, res: Response) => {
             id: +req.params.id
         }
     })
-    if (req.files.photo == null) {
-        prisma.position.update({
-            where: {
-                id: +req.params.id
-            },
-            data: {
-                title: req.body.title,
-                price: req.body.price,
-                composition: req.body.composition,
-                categoryId: req.body.categoryId,
-                photoPath: pos.photoPath
-            }
-        })
-    } else {
-        const upl = req.files.photo
+    
+    let name = pos.photoPath
+    const upl = req.files ? req.files.photo : pos.photoPath
+    if (upl != pos.photoPath) {
         upl.name = Date.now() + ".jpeg"
-        const path = "./public/pics/" + upl.name
-        upl.mv(path)
-        await unlink('./public/pics/'+pos.photoPath, (e) => {console.log(e)})
-        prisma.position.update({
-            where: {
-                id: +req.params.id
-            },
-            data: {
-                title: req.body.title,
-                price: req.body.price,
-                composition: req.body.composition,
-                categoryId: req.body.categoryId,
-                photoPath: upl.name
-            }
-        })
-
-        
+    const path = "./public/pics/" + upl.name
+    upl.mv(path)
+    name = upl.name
+    await unlink('./public/pics/' + pos.photoPath, (e) => { console.log(e) })
     }
+    
+    await prisma.position.update({
+        where: {
+            id: +req.params.id
+        },
+        data: {
+            title: req.body.title,
+            price: +req.body.price,
+            composition: req.body.composition,
+            categoryId: +req.body.categoryId,
+            photoPath: name
+        }
+    })
+
+
     res.sendStatus(200)
     prisma.$disconnect
 }
@@ -87,7 +77,7 @@ module.exports.delete = async (req: Request, res: Response) => {
             id: +req.params.id
         }
     })
-    await unlink('./public/pics/'+pos.photoPath, (e) => {console.log(e)})
+    await unlink('./public/pics/' + pos.photoPath, (e) => { console.log(e) })
     res.send(`Pos with id ${req.params.id} deleted`)
     prisma.$disconnect
 }

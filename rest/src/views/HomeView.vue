@@ -13,7 +13,8 @@ export default {
     axios.get("http://localhost:3000").then((res) => {
       this.categories = res.data;
     });
-    this.isLoading = false;
+    setTimeout(() => {this.isLoading = false},1000)
+    ;
   },
   
   methods: {

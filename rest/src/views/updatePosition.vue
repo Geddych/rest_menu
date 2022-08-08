@@ -38,6 +38,7 @@ export default {
         headers: { "Content-type": "multipart/form-data" },
         data: fd,
       });
+      
       this.$router.push("/");
     },
     handleUploadFile() {
